@@ -7,10 +7,13 @@ function App() {
   const [max, setMax] = useState('');
   const [rangeMessage, setRangeMessage] = useState('');
 
+  // Replace this with your actual ngrok URL
+  const backendUrl = 'https://0296-147-197-250-43.ngrok-free.app';
+
   // Poll the backend for a new random number every second
   useEffect(() => {
     const interval = setInterval(() => {
-      fetch('http://127.0.0.1:5000/random-number')
+      fetch(`${backendUrl}/random-number`)
         .then(response => response.json())
         .then(data => {
           console.log('Fetched data:', data);
@@ -20,7 +23,7 @@ function App() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [backendUrl]);
 
   // Handle setting a new range
   const handleSetRange = () => {
@@ -32,7 +35,7 @@ function App() {
       return;
     }
 
-    fetch('http://127.0.0.1:5000/set-range', {
+    fetch(`${backendUrl}/set-range`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
