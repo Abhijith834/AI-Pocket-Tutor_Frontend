@@ -7,26 +7,44 @@ function App() {
   const [max, setMax] = useState('');
   const [rangeMessage, setRangeMessage] = useState('');
 
-  // Replace this with your actual ngrok URL
-  const backendUrl = 'https://0296-147-197-250-43.ngrok-free.app';
+  // Replace with your actual ngrok URL
+  const backendUrl = 'https://8535-2404-f980-5-2002-f7f-30e8-1c-e9dd.ngrok-free.app';
 
-  // Poll the backend for a new random number every second
   useEffect(() => {
-    const interval = setInterval(() => {
-      fetch(`${backendUrl}/random-number`)
-        .then(response => response.json())
-        .then(data => {
-          console.log('Fetched data:', data);
+    // Function to fetch the random number
+    const fetchRandomNumber = async () => {
+      try {
+        const response = await fetch(`${backendUrl}/random-number`, {
+          cache: "no-store",
+          headers: {
+            'ngrok-skip-browser-warning': 'true', // This is the crucial part
+          }
+        });
+        console.log('Response from /random-number:', response);
+        if (!response.ok) {
+          console.error('Response not OK:', response.status);
+          return;
+        }
+        const data = await response.json();
+        console.log('Data received:', data);
+        if (data && typeof data.number === 'number') {
           setNumber(data.number);
-        })
-        .catch(error => console.error('Error fetching number:', error));
-    }, 1000);
+        } else {
+          console.error('Unexpected data format:', data);
+        }
+      } catch (error) {
+        console.error('Error fetching random number:', error);
+      }
+    };
 
+    // Initial fetch + interval
+    fetchRandomNumber();
+    const interval = setInterval(fetchRandomNumber, 1000);
     return () => clearInterval(interval);
   }, [backendUrl]);
 
   // Handle setting a new range
-  const handleSetRange = () => {
+  const handleSetRange = async () => {
     const parsedMin = parseFloat(min);
     const parsedMax = parseFloat(max);
 
@@ -35,30 +53,36 @@ function App() {
       return;
     }
 
-    fetch(`${backendUrl}/set-range`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ min: parsedMin, max: parsedMax })
-    })
-      .then(response => response.json())
-      .then(data => {
-        if (data.error) {
-          setRangeMessage(data.error);
-        } else {
-          setRangeMessage(`Range updated to: ${data.min} - ${data.max}`);
-        }
-      })
-      .catch(error => {
-        console.error('Error setting range:', error);
-        setRangeMessage('Error setting range.');
+    try {
+      const response = await fetch(`${backendUrl}/set-range`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true' // Include it here too
+        },
+        body: JSON.stringify({ min: parsedMin, max: parsedMax }),
       });
+      console.log('Response from /set-range:', response.status);
+      if (!response.ok) {
+        setRangeMessage(`Error: ${response.status}`);
+        return;
+      }
+      const data = await response.json();
+      console.log('Data from /set-range:', data);
+      if (data.error) {
+        setRangeMessage(data.error);
+      } else {
+        setRangeMessage(`Range updated to: ${data.min} - ${data.max}`);
+      }
+    } catch (error) {
+      console.error('Error setting range:', error);
+      setRangeMessage('Error setting range.');
+    }
   };
 
   return (
     <div className="App">
-      <h1>API</h1>
+      <h1>Random Number API</h1>
       <div className="number">
         {number !== null ? number : 'Loading...'}
       </div>
