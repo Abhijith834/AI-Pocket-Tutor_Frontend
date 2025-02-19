@@ -8,7 +8,7 @@ function App() {
   const [rangeMessage, setRangeMessage] = useState('');
 
   // Replace with your actual ngrok URL
-  const backendUrl = 'https://a5de-147-197-250-43.ngrok-free.app';
+  const backendUrl = 'https://tolerant-singularly-ghoul.ngrok-free.app';
 
   useEffect(() => {
     // Function to fetch the random number
